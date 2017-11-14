@@ -1,0 +1,12 @@
+{
+	"name": "adex-adview",
+	"version": "0.0.0",
+	"description": "Adex advew",
+	"keywords": [],
+	"homepage": "",
+	"repository": "",
+	"license": "",
+	"dependencies": {
+		"aero": "*"
+	}
+}

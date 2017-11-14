@@ -1,2 +1,6 @@
-h1 Hello Aero
-p Edit this page in pages\home\home.pug
+img#adeximg(width="400", height="400", alt="")
+script.
+    function adexViewCallback(data){
+        console.log('data', data)
+        window.adeximg.src = data.imgSrc
+    }

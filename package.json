@@ -7,13 +7,12 @@
  "repository": "",
  "license": "",
  "scripts": {
-  "start": "node index.js"
+  "start": "node build/dev-server"
  },
  "engines": {
   "node": "^6.11.1"
  },
  "dependencies": {
-  "aero": "*"
  },
  "devDependencies": {
   "babel-core": "^6.26.0",

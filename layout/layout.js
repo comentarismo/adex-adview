@@ -1,1 +1,0 @@
-exports.render = function (request, render) { render({}) }

@@ -14,7 +14,7 @@ router.get('/depsblob.js', function(req, res) {
     depsBlob().bundle().pipe(res);
 });
 
-//router.use(require('serve-static')('./'));
+router.use(require('serve-static')('./public'));
 
 // Listen
 var app = express()

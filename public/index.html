@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Adex View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <script src='depsblob.js'/>
+  </head>
+
+  <body>
+	<img id="adeximg" width="400" height="400" alt="">
+	</img>
+
+	<script>
+	function adexViewCallback(data){
+		console.log('data', data)
+		window.adeximg.src = data.imgSrc
+	}
+	</script>
+  </body>
+
+</html>

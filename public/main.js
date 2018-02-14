@@ -13,7 +13,27 @@ if (localStorage.priv && localStorage.priv.length === 64) {
 
 console.log('Address: '+id.getChecksumAddressString())
 
+window.onload = adexLoadedCallback
+
+function adexLoadedCallback()
+{
+	signAndSendEv({ type: 'loaded', time: Date.now() })
+}
+
 function adexViewCallback(data){
-	console.log('data', data)
+	console.log('load ad with data', data)
 	window.adeximg.src = data.imgSrc
+	window.adeximg.width = data.width
+	window.adeximg.height = data.height
+
+	signAndSendEv({ type: 'loaded', time: Date.now() })
+}
+
+function signAndSendEv(ev)
+{
+	var blob = JSON.stringify(ev)
+	var message = util.toBuffer(blob)
+	var hash = util.hashPersonalMessage(message)
+	var sig = util.ecsign(hash, id.getPrivateKey())
+	console.log(blob, hash, sig)
 }

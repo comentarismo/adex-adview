@@ -35,5 +35,18 @@ function signAndSendEv(ev)
 	var message = util.toBuffer(blob)
 	var hash = util.hashPersonalMessage(message)
 	var sig = util.ecsign(hash, id.getPrivateKey())
-	console.log(blob, hash, sig)
+
+	// @TODO: send, perhaps serialize the sig
+
+	console.log({
+		msg: ev,
+		hash: util.bufferToHex(hash),
+		addr: id.getChecksumAddressString(),
+		sig: { 
+			mode: 1, 
+			v: sig.v,
+			r: util.bufferToHex(sig.r),
+			s: util.bufferToHex(sig.s) 
+		},
+	})
 }

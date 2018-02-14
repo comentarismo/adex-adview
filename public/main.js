@@ -17,7 +17,8 @@ window.onload = adexLoadedCallback
 
 function adexLoadedCallback()
 {
-	signAndSendEv({ type: 'loaded', time: Date.now() })
+	// @TODO: this should parse the URL and include a JSONP to load the view
+	adexViewCallback({ imgSrc: 'http://blog.strem.io/wp-content/uploads/2017/08/Download-Stremio-for-desktop-3.png', width: 300, height: 250, url: 'https://www.stremio.com' })
 }
 
 function adexViewCallback(data){
@@ -25,8 +26,14 @@ function adexViewCallback(data){
 	window.adeximg.src = data.imgSrc
 	window.adeximg.width = data.width
 	window.adeximg.height = data.height
+	window.adexlink.href = data.url
+	window.adexlink.onclick = adexClickCallback.bind(null, data)
+	signAndSendEv({ type: 'loaded', time: Date.now(), data: data })
+}
 
-	signAndSendEv({ type: 'loaded', time: Date.now() })
+function adexClickCallback(data)
+{
+	signAndSendEv({ type: 'clicked', time: Date.now(), data: data })
 }
 
 function signAndSendEv(ev)

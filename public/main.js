@@ -21,8 +21,10 @@ function adexLoadedCallback()
 	adexViewCallback({ imgSrc: 'http://blog.strem.io/wp-content/uploads/2017/08/Download-Stremio-for-desktop-3.png', width: 300, height: 250, url: 'https://www.stremio.com' })
 }
 
-function adexViewCallback(data){
-	console.log('load ad with data', data)
+function adexViewCallback(data)
+{
+	console.log('Load adunit with data', data)
+
 	window.adeximg.src = data.imgSrc
 	window.adeximg.width = data.width
 	window.adeximg.height = data.height
@@ -45,7 +47,7 @@ function signAndSendEv(ev)
 
 	// @TODO: send, perhaps serialize the sig
 
-	console.log({
+	var toSend = {
 		msg: ev,
 		hash: util.bufferToHex(hash),
 		addr: id.getChecksumAddressString(),
@@ -55,5 +57,7 @@ function signAndSendEv(ev)
 			r: util.bufferToHex(sig.r),
 			s: util.bufferToHex(sig.s) 
 		},
-	})
+	}
+
+	console.log(toSend)
 }

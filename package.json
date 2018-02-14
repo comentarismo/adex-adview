@@ -13,11 +13,14 @@
   "node": "^6.11.1"
  },
  "dependencies": {
+  "ethereumjs-util": "^5.1.4",
+  "ethereumjs-wallet": "^0.6.0"
  },
  "devDependencies": {
   "babel-core": "^6.26.0",
   "babel-plugin-transform-runtime": "^6.23.0",
   "babel-polyfill": "^6.26.0",
+  "babel-preset-env": "^1.6.1",
   "babel-preset-latest": "^6.24.1",
   "babelify": "^8.0.0",
   "browserify": "^15.0.0",

@@ -4,11 +4,11 @@ var Buffer = require('buffer').Buffer
 
 // @TODO: use storage.js
 var id
-if (localStorage.privKey.length === 64) {
-	id = Wallet.fromPrivateKey(Buffer.from(localStorage.privKey, 'hex'))
+if (localStorage.priv && localStorage.priv.length === 64) {
+	id = Wallet.fromPrivateKey(Buffer.from(localStorage.priv, 'hex'))
 } else {
 	id = Wallet.generate()
-	localStorage.privKey = id.getPrivateKey().toString('hex')
+	localStorage.priv = id.getPrivateKey().toString('hex')
 }
 
 console.log('Address: '+id.getChecksumAddressString())

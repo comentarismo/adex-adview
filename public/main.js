@@ -1,14 +1,17 @@
+require('whatwg-fetch')
 var Wallet = require('ethereumjs-wallet')
 var util = require('ethereumjs-util')
 var Buffer = require('buffer').Buffer
 var queryString = require('query-string')
-require('whatwg-fetch')
 var NODE_BASE_URL = 'http://127.0.0.1:9710'
 
 // @TODO: use storage.js
 var id
 var userid
 var authSig
+var currentBidId //contract id 
+var curretAdUnit //ipfs
+
 if (localStorage.priv && localStorage.priv.length === 64) {
 	id = Wallet.fromPrivateKey(Buffer.from(localStorage.priv, 'hex'))
 } else {
@@ -17,6 +20,8 @@ if (localStorage.priv && localStorage.priv.length === 64) {
 }
 
 userid = id.getChecksumAddressString()
+
+console.log('Address: ' + userid)
 
 auth()
 
@@ -46,31 +51,23 @@ function auth() {
 	}
 }
 
-
-console.log('Address: ' + id.getChecksumAddressString())
-
-
 function init() {
 	window.onload = adexLoadedCallback
 }
 
 //TODO: set it to localStorage
 function getAuthSig(cb) {
-	console.log('cb', cb)
 	var authToken = (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)).toString()
 	var sigAndHash = signMsg(authToken)
 
 	var toSend = {
-		userid: id.getChecksumAddressString(),
+		userid: userid,
 		signature: sigAndHash.sig.rpcSig,
 		mode: 1,
 		authToken: authToken
 	}
 
-	var headers = getHeaders([{
-		key: 'Content-Type',
-		value: 'application/json'
-	}])
+	var headers = getHeaders()
 
 	fetch(NODE_BASE_URL + '/auth', {
 		method: 'POST',
@@ -98,15 +95,18 @@ function getAdData(slotId, width, height) {
 			} else {
 				adexViewCallback({ imgSrc: 'https://developers.google.com/maps/documentation/streetview/images/error-image-generic.png', width: width, height: height })
 			}
-
 		})
 		.then(function (res) {
 			console.log('fetch res', res)
 
 			let bidIndex = Math.floor(Math.random() * res.length) //TEMP
 			let bid = res[bidIndex].bid
-			let adunit = res[bidIndex].adUnit._meta
+			let adunitRes = res[bidIndex].adUnit
+			let adunit = adunitRes._meta
 			let url = (adunit.ad_url || '').toLowerCase()
+
+			currentBidId = bid._contractId
+			curretAdUnit = adunitRes._ipfs
 
 			if (!/^https?:\/\//i.test(url)) {
 				url = 'http://' + url
@@ -134,11 +134,11 @@ function adexViewCallback(data) {
 	window.adeximg.height = data.height
 	window.adexlink.href = data.url
 	window.adexlink.onclick = adexClickCallback.bind(null, data)
-	signAndSendEv({ type: 'loaded', time: Date.now(), data: data })
+	signAndSendEv({ type: 'loaded', time: Date.now() })
 }
 
 function adexClickCallback(data) {
-	signAndSendEv({ type: 'clicked', time: Date.now(), data: data })
+	signAndSendEv({ type: 'click', time: Date.now() })
 }
 
 function signMsg(msg) {
@@ -158,21 +158,46 @@ function signMsg(msg) {
 	}
 }
 
-// JSON.stringify({ 'type': payload.type, 'uid': payload.uid, 'adunit': payload.adunit, 'address':  payload.address, ' signature' : payload.signature})]
+// JSON.stringify({ 'type': payload.type, 'adunit': payload.adunit, 'address':  payload.address, ' signature' : payload.signature})]
 function signAndSendEv(ev) {
+	ev.adunit = curretAdUnit
+	ev.bid = currentBidId
+	ev.address = userid
+
 	var blob = JSON.stringify(ev)
 	var sigAndHash = signMsg(blob)
 
-	// @TODO: send, perhaps serialize the sig
+	console.log('sigAndHash', sigAndHash)
 
 	var toSend = {
-		msg: blob,
-		hash: sigAndHash.hash,
-		addr: id.getChecksumAddressString(),
-		sig: sigAndHash.sig
+		//signed props
+		type: ev.type,
+		time: ev.time,
+		adunit: curretAdUnit,
+		bid: currentBidId,
+		address: userid,
+
+		//not signed props
+		sigMode: 1,
+		signature: sigAndHash.sig.rpcSig
 	}
 
-	console.log(toSend)
+	console.log('toSend', toSend)
+
+	fetch(NODE_BASE_URL + '/submit', {
+		method: 'POST',
+		headers: getHeaders(),
+		body: JSON.stringify(toSend)
+	})
+		.then((res) => {
+			return res.text()
+		})
+		.then((res) => {
+			console.log('signAndSendEv res', res)
+		})
+		.catch((err) => {
+			console.log('signAndSendEv err', err)
+		})
 }
 
 function getHeaders(otherHeaders) {
@@ -180,7 +205,8 @@ function getHeaders(otherHeaders) {
 	var hdrs = {
 		'X-User-Address': userid || '',
 		'X-User-Signature': authSig || '',
-		// 'X-Auth-Token': authToken
+		// 'X-Auth-Token': authToken,
+		'Content-Type': 'application/json'
 	}
 
 	for (let index = 0; index < otherHeaders.length; index++) {

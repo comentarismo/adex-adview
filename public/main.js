@@ -7,6 +7,8 @@ var NODE_BASE_URL = 'http://127.0.0.1:9710'
 
 // @TODO: use storage.js
 var id
+var userid
+var authSig
 if (localStorage.priv && localStorage.priv.length === 64) {
 	id = Wallet.fromPrivateKey(Buffer.from(localStorage.priv, 'hex'))
 } else {
@@ -14,12 +16,47 @@ if (localStorage.priv && localStorage.priv.length === 64) {
 	localStorage.priv = id.getPrivateKey().toString('hex')
 }
 
+userid = id.getChecksumAddressString()
+
+auth()
+
+function setAuth(err, data) {
+	localStorage.setItem('userid-' + userid, data.signature + '-' + data.expiryTime)
+
+	init()
+}
+
+function auth() {
+	let sigAndTIme = localStorage.getItem('userid-' + userid)
+
+	if (!sigAndTIme) {
+		getAuthSig(setAuth)
+		return
+	}
+
+	sigAndTIme = sigAndTIme.split('-')
+	let sig = sigAndTIme[0]
+	let time = sigAndTIme[1]
+
+	if (!time || (parseInt(time, 10) <= Date.now())) {
+		getAuthSig(setAuth)
+	} else {
+		authSig = sig
+		init()
+	}
+}
+
+
 console.log('Address: ' + id.getChecksumAddressString())
 
-window.onload = adexLoadedCallback
+
+function init() {
+	window.onload = adexLoadedCallback
+}
 
 //TODO: set it to localStorage
-function getAuthSig() {
+function getAuthSig(cb) {
+	console.log('cb', cb)
 	var authToken = (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)).toString()
 	var sigAndHash = signMsg(authToken)
 
@@ -30,7 +67,7 @@ function getAuthSig() {
 		authToken: authToken
 	}
 
-	var headers = getHeaders('', '', '', [{
+	var headers = getHeaders([{
 		key: 'Content-Type',
 		value: 'application/json'
 	}])
@@ -40,13 +77,28 @@ function getAuthSig() {
 		headers: headers,
 		body: JSON.stringify(toSend)
 	})
+		.then((res) => {
+			return res.json()
+		})
+		.then((res) => {
+			cb(null, res)
+		})
+		.catch((err) => {
+			console.log('gethAuth err', err)
+			cb(err, null)
+		})
 }
 
-
 function getAdData(slotId, width, height) {
-	fetch(NODE_BASE_URL + '/a-d-e-x-view?slotId=' + encodeURIComponent(slotId))
+	fetch(NODE_BASE_URL + '/a-d-e-x-view?slotId=' + encodeURIComponent(slotId),
+		{ headers: getHeaders() })
 		.then(function (res) {
-			return res.json()
+			if (res.status >= 200 && res.status < 400) {
+				return res.json()
+			} else {
+				adexViewCallback({ imgSrc: 'https://developers.google.com/maps/documentation/streetview/images/error-image-generic.png', width: width, height: height })
+			}
+
 		})
 		.then(function (res) {
 			console.log('fetch res', res)
@@ -70,7 +122,6 @@ function getAdData(slotId, width, height) {
 }
 
 function adexLoadedCallback() {
-	getAuthSig()
 	var query = queryString.parse(location.search)
 	getAdData(query.slotId, query.width, query.height, query.slotId)
 }
@@ -124,12 +175,12 @@ function signAndSendEv(ev) {
 	console.log(toSend)
 }
 
-function getHeaders(userAddr, authSig, authToken, otherHeaders) {
+function getHeaders(otherHeaders) {
 	otherHeaders = otherHeaders || []
 	var hdrs = {
-		'X-User-Address': userAddr,
-		'X-User-Signature': authSig,
-		'X-Auth-Token': authToken
+		'X-User-Address': userid || '',
+		'X-User-Signature': authSig || '',
+		// 'X-Auth-Token': authToken
 	}
 
 	for (let index = 0; index < otherHeaders.length; index++) {

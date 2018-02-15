@@ -51,8 +51,9 @@ function getAdData(slotId, width, height) {
 		.then(function (res) {
 			console.log('fetch res', res)
 
-			let adunitIndex = Math.floor(Math.random() * res.length) //TEMP
-			let adunit = res[adunitIndex]._meta
+			let bidIndex = Math.floor(Math.random() * res.length) //TEMP
+			let bid = res[bidIndex].bid
+			let adunit = res[bidIndex].adUnit._meta
 			let url = (adunit.ad_url || '').toLowerCase()
 
 			if (!/^https?:\/\//i.test(url)) {

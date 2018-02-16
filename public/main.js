@@ -105,7 +105,7 @@ function getAdData(slotId, width, height) {
 			let adunit = adunitRes._meta
 			let url = (adunit.ad_url || '').toLowerCase()
 
-			currentBidId = bid._contractId
+			currentBidId = bid._id
 			curretAdUnit = adunitRes._ipfs
 
 			if (!/^https?:\/\//i.test(url)) {

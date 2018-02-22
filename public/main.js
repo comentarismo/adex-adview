@@ -3,7 +3,9 @@ var Wallet = require('ethereumjs-wallet')
 var util = require('ethereumjs-util')
 var Buffer = require('buffer').Buffer
 var queryString = require('query-string')
-var NODE_BASE_URL = 'http://127.0.0.1:9710'
+var NODE_BASE_URL = 'https://node.adex.network:9710'
+var TEMP_DEFAULT_IMG_IPFS = 'QmeQqaZC1ftKp1uWbpVRVhbCwBBrysTa3DBg9JUr6NWrQx'
+var TEMP_DEFAULT_LINK = 'https://adex.network/'
 
 // @TODO: use storage.js
 var id
@@ -86,14 +88,17 @@ function getAuthSig(cb) {
 		})
 }
 
-function getAdData(slotId, width, height) {
+function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
+	fallbackUrl = fallbackUrl || TEMP_DEFAULT_LINK
+	fallbackImgIpfs = fallbackImgIpfs || TEMP_DEFAULT_IMG_IPFS
+
 	fetch(NODE_BASE_URL + '/a-d-e-x-view?slotId=' + encodeURIComponent(slotId),
 		{ headers: getHeaders() })
 		.then(function (res) {
 			if (res.status >= 200 && res.status < 400) {
 				return res.json()
 			} else {
-				adexViewCallback({ imgSrc: 'https://developers.google.com/maps/documentation/streetview/images/error-image-generic.png', width: width, height: height })
+				adexViewCallback({ imgSrc: getImgIpfsUrl(fallbackImgIpfs), width: width, height: height, url: getHttpUrl(fallbackUrl) })
 			}
 		})
 		.then(function (res) {
@@ -108,22 +113,18 @@ function getAdData(slotId, width, height) {
 			currentBidId = bid._id
 			curretAdUnit = adunitRes._ipfs
 
-			if (!/^https?:\/\//i.test(url)) {
-				url = 'http://' + url
-			}
-
 			// @TODO: this should parse the URL and include a JSONP to load the view
 			// NOTE: we should tahe the width and height from the adunit but we keep it in the models as number and have to map it from adex-constants
-			adexViewCallback({ imgSrc: 'http://localhost:8080/ipfs/' + encodeURIComponent(adunit.img.ipfs), width: width, height: height, url: url })
+			adexViewCallback({ imgSrc: getImgIpfsUrl(adunit.img.ipfs), width: width, height: height, url: getHttpUrl(url) })
 		})
 		.catch(function (err) {
-			console.log('fetch res', err)
+			adexViewCallback({ imgSrc: getImgIpfsUrl(fallbackImgIpfs), width: width, height: height, url: getHttpUrl(fallbackUrl) })
 		})
 }
 
 function adexLoadedCallback() {
 	var query = queryString.parse(location.search)
-	getAdData(query.slotId, query.width, query.height, query.slotId)
+	getAdData(query.slotId, query.width, query.height, query.slotId, query.fallbackUrl, query.fallbackImgIpfs)
 }
 
 function adexViewCallback(data) {
@@ -167,8 +168,6 @@ function signAndSendEv(ev) {
 	var blob = JSON.stringify(ev)
 	var sigAndHash = signMsg(blob)
 
-	console.log('sigAndHash', sigAndHash)
-
 	var toSend = {
 		//signed props
 		type: ev.type,
@@ -181,8 +180,6 @@ function signAndSendEv(ev) {
 		sigMode: 1,
 		signature: sigAndHash.sig.rpcSig
 	}
-
-	console.log('toSend', toSend)
 
 	fetch(NODE_BASE_URL + '/submit', {
 		method: 'POST',
@@ -215,4 +212,16 @@ function getHeaders(otherHeaders) {
 	}
 
 	return hdrs
+}
+
+function getHttpUrl(url) {
+	if (!/^https?:\/\//i.test(url)) {
+		url = 'http://' + url
+	}
+
+	return url
+}
+
+function getImgIpfsUrl(ipfs) {
+	return 'https://gateway.ipfs.io/ipfs/' + encodeURIComponent(ipfs)
 }

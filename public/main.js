@@ -29,7 +29,7 @@ console.log('Address: ' + userid)
 auth()
 
 function setAuth(err, data) {
-	if (err) {
+	if (err || !data.signature || !data.expiryTime) {
 		authErr = true
 	}
 	else {

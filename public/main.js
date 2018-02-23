@@ -3,7 +3,7 @@ var Wallet = require('ethereumjs-wallet')
 var util = require('ethereumjs-util')
 var Buffer = require('buffer').Buffer
 var queryString = require('query-string')
-var NODE_BASE_URL = 'https://node.adex.network:9710'
+var NODE_BASE_URL = 'https://node.adex.network'
 var TEMP_DEFAULT_IMG_IPFS = 'QmeQqaZC1ftKp1uWbpVRVhbCwBBrysTa3DBg9JUr6NWrQx'
 var TEMP_DEFAULT_LINK = 'https://adex.network/'
 
@@ -13,6 +13,7 @@ var userid
 var authSig
 var currentBidId //contract id 
 var curretAdUnit //ipfs
+var authErr = false
 
 if (localStorage.priv && localStorage.priv.length === 64) {
 	id = Wallet.fromPrivateKey(Buffer.from(localStorage.priv, 'hex'))
@@ -28,7 +29,12 @@ console.log('Address: ' + userid)
 auth()
 
 function setAuth(err, data) {
-	localStorage.setItem('userid-' + userid, data.signature + '-' + data.expiryTime)
+	if (err) {
+		authErr = true
+	}
+	else {
+		localStorage.setItem('userid-' + userid, data.signature + '-' + data.expiryTime)
+	}
 
 	init()
 }
@@ -124,7 +130,11 @@ function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
 
 function adexLoadedCallback() {
 	var query = queryString.parse(location.search)
-	getAdData(query.slotId, query.width, query.height, query.slotId, query.fallbackUrl, query.fallbackImgIpfs)
+	if (authErr) {
+		adexViewCallback({ imgSrc: getImgIpfsUrl(query.fallbackImgIpfs), width: query.width, height: query.height, url: getHttpUrl(query.fallbackUrl) })
+	} else {
+		getAdData(query.slotId, query.width, query.height, query.slotId, query.fallbackUrl, query.fallbackImgIpfs)
+	}
 }
 
 function adexViewCallback(data) {
@@ -134,6 +144,8 @@ function adexViewCallback(data) {
 	window.adeximg.width = data.width
 	window.adeximg.height = data.height
 	window.adexlink.href = data.url
+	window.adexlink.href = data.url
+	window.adexlink.target = '_blank'
 	window.adexlink.onclick = adexClickCallback.bind(null, data)
 	signAndSendEv({ type: 'loaded', time: Date.now() })
 }
@@ -216,7 +228,7 @@ function getHeaders(otherHeaders) {
 
 function getHttpUrl(url) {
 	if (!/^https?:\/\//i.test(url)) {
-		url = 'http://' + url
+		url =  '//' + url
 	}
 
 	return url

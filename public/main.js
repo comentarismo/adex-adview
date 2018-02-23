@@ -14,6 +14,9 @@ var authSig
 var currentBidId //contract id 
 var curretAdUnit //ipfs
 var authErr = false
+var query = queryString.parse(location.search)
+
+setImgPlaceholderSize()
 
 if (localStorage.priv && localStorage.priv.length === 64) {
 	id = Wallet.fromPrivateKey(Buffer.from(localStorage.priv, 'hex'))
@@ -60,7 +63,11 @@ function auth() {
 }
 
 function init() {
-	window.onload = adexLoadedCallback
+	if (document.readyState === "complete") {
+		adexLoadedCallback()
+	} else {
+		window.onload = adexLoadedCallback
+	}
 }
 
 //TODO: set it to localStorage
@@ -95,7 +102,7 @@ function getAuthSig(cb) {
 }
 
 function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
-	fetch(NODE_BASE_URL + '/a-d-e-x-view?slotId=' + encodeURIComponent(slotId),
+	fetch(NODE_BASE_URL + '/view?slotId=' + encodeURIComponent(slotId),
 		{ headers: getHeaders() })
 		.then(function (res) {
 			if (res.status >= 200 && res.status < 400) {
@@ -126,27 +133,35 @@ function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
 }
 
 function adexLoadedCallback() {
-	var query = queryString.parse(location.search)
 	var fallbackUrl = query.fallbackUrl || TEMP_DEFAULT_LINK
 	var fallbackImgIpfs = query.fallbackImgIpfs || TEMP_DEFAULT_IMG_IPFS
 
 	if (authErr) {
 		adexViewCallback({ imgSrc: getImgIpfsUrl(fallbackImgIpfs), width: query.width, height: query.height, url: getHttpUrl(fallbackUrl) })
 	} else {
-		getAdData(query.slotId, query.width, query.height, query.slotId, fallbackUrl, fallbackImgIpfs)
+		getAdData(query.slotId, query.width, query.height, fallbackUrl, fallbackImgIpfs)
 	}
 }
 
 function adexViewCallback(data) {
 	console.log('Load adunit with data', data)
 
-	window.adeximg.src = data.imgSrc
-	window.adeximg.width = data.width
-	window.adeximg.height = data.height
-	window.adexlink.href = data.url
+	var adexImg = document.createElement("img")
+
+	adexImg.src = data.imgSrc
+	adexImg.width = data.width
+	adexImg.height = data.height
+	adexImg.alt = data.url
+	adexImg.style = 'border: 0;'
+
+
 	window.adexlink.href = data.url
 	window.adexlink.target = '_blank'
 	window.adexlink.onclick = adexClickCallback.bind(null, data)
+
+	window.adeximgplaceholder.height = 0 // TODO: Remove element ?
+	window.adexlink.appendChild(adexImg)
+
 	signAndSendEv({ type: 'loaded', time: Date.now() })
 }
 
@@ -236,4 +251,9 @@ function getHttpUrl(url) {
 
 function getImgIpfsUrl(ipfs) {
 	return 'https://gateway.ipfs.io/ipfs/' + encodeURIComponent(ipfs)
+}
+
+function setImgPlaceholderSize() {
+	window.adeximgplaceholder.width = query.width
+	window.adeximgplaceholder.height = query.height
 }

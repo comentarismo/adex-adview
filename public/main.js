@@ -36,6 +36,7 @@ function setAuth(err, data) {
 		authErr = true
 	}
 	else {
+		authSig = data.signature
 		localStorage.setItem('userid-' + userid, data.signature + '-' + data.expiryTime)
 	}
 
@@ -57,9 +58,30 @@ function auth() {
 	if (!time || (parseInt(time, 10) <= Date.now())) {
 		getAuthSig(setAuth)
 	} else {
-		authSig = sig
-		init()
+		checkAuth()
 	}
+}
+
+function checkAuth(sig) {
+	fetch(NODE_BASE_URL + '/auth-check', {
+		method: 'GET',
+		headers: getHeaders(),
+	})
+		.then((res) => {
+			return res.json()
+		})
+		.then((res) => {
+			if (res && res.authenticated) {
+				authSig = sig
+				init()
+			} else {
+				getAuthSig(setAuth)
+			}
+		})
+		.catch((err) => {
+			console.log('checkAuth err', err)
+			getAuthSig(setAuth)
+		})
 }
 
 function init() {
@@ -82,11 +104,9 @@ function getAuthSig(cb) {
 		authToken: authToken
 	}
 
-	var headers = getHeaders()
-
 	fetch(NODE_BASE_URL + '/auth', {
 		method: 'POST',
-		headers: headers,
+		headers: getHeaders(),
 		body: JSON.stringify(toSend)
 	})
 		.then((res) => {
@@ -188,6 +208,10 @@ function signMsg(msg) {
 
 // JSON.stringify({ 'type': payload.type, 'adunit': payload.adunit, 'address':  payload.address, ' signature' : payload.signature})]
 function signAndSendEv(ev) {
+	if (!currentBidId) {
+		return // TODO: in no bid do not set events 
+	}
+
 	ev.adunit = curretAdUnit
 	ev.bid = currentBidId
 	ev.address = userid

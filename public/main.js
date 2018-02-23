@@ -95,9 +95,6 @@ function getAuthSig(cb) {
 }
 
 function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
-	fallbackUrl = fallbackUrl || TEMP_DEFAULT_LINK
-	fallbackImgIpfs = fallbackImgIpfs || TEMP_DEFAULT_IMG_IPFS
-
 	fetch(NODE_BASE_URL + '/a-d-e-x-view?slotId=' + encodeURIComponent(slotId),
 		{ headers: getHeaders() })
 		.then(function (res) {
@@ -130,10 +127,13 @@ function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
 
 function adexLoadedCallback() {
 	var query = queryString.parse(location.search)
+	var fallbackUrl = query.fallbackUrl || TEMP_DEFAULT_LINK
+	var fallbackImgIpfs = query.fallbackImgIpfs || TEMP_DEFAULT_IMG_IPFS
+
 	if (authErr) {
-		adexViewCallback({ imgSrc: getImgIpfsUrl(query.fallbackImgIpfs), width: query.width, height: query.height, url: getHttpUrl(query.fallbackUrl) })
+		adexViewCallback({ imgSrc: getImgIpfsUrl(fallbackImgIpfs), width: query.width, height: query.height, url: getHttpUrl(fallbackUrl) })
 	} else {
-		getAdData(query.slotId, query.width, query.height, query.slotId, query.fallbackUrl, query.fallbackImgIpfs)
+		getAdData(query.slotId, query.width, query.height, query.slotId, fallbackUrl, fallbackImgIpfs)
 	}
 }
 
@@ -228,7 +228,7 @@ function getHeaders(otherHeaders) {
 
 function getHttpUrl(url) {
 	if (!/^https?:\/\//i.test(url)) {
-		url =  '//' + url
+		url = '//' + url
 	}
 
 	return url

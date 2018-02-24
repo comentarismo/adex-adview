@@ -153,8 +153,11 @@ function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
 }
 
 function adexLoadedCallback() {
+	var isValidFallbackIPFS = /^(Qm[a-zA-Z\d]{44})$/.test(query.fallbackImgIpfs)
+	var queryFallbackImgIpfs = isValidFallbackIPFS ? query.fallbackImgIpfs : ''
+	var fallbackImgIpfs = queryFallbackImgIpfs || TEMP_DEFAULT_IMG_IPFS
+
 	var fallbackUrl = query.fallbackUrl || TEMP_DEFAULT_LINK
-	var fallbackImgIpfs = query.fallbackImgIpfs || TEMP_DEFAULT_IMG_IPFS
 
 	if (authErr) {
 		adexViewCallback({ imgSrc: getImgIpfsUrl(fallbackImgIpfs), width: query.width, height: query.height, url: getHttpUrl(fallbackUrl) })
@@ -166,14 +169,17 @@ function adexLoadedCallback() {
 function adexViewCallback(data) {
 	console.log('Load adunit with data', data)
 
-	var adexImg = document.createElement("img")
+	var adexImg = document.createElement("div")
 
 	adexImg.src = data.imgSrc
-	adexImg.width = data.width
-	adexImg.height = data.height
-	adexImg.alt = data.url
-	adexImg.style = 'border: 0;'
-
+	adexImg.style.width = data.width + 'px'
+	adexImg.style.height = data.height + 'px'
+	adexImg.style.backgroundImage = 'url("' + data.imgSrc + '")'
+	adexImg.style.boredr = '0'
+	adexImg.style.backgroundPosition = 'center'
+	adexImg.style.backgroundSize = 'cover'
+	adexImg.style.backgroundRepeat = 'no-repeat'
+	adexImg.style.boredr = '0'
 
 	window.adexlink.href = data.url
 	window.adexlink.target = '_blank'

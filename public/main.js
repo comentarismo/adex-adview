@@ -128,7 +128,7 @@ function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
 			if (res.status >= 200 && res.status < 400) {
 				return res.json()
 			} else {
-				adexViewCallback({ imgSrc: getImgIpfsUrl(fallbackImgIpfs), width: width, height: height, url: getHttpUrl(fallbackUrl) })
+				throw 'Error getting slot data'
 			}
 		})
 		.then(function (res) {

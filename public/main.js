@@ -179,7 +179,7 @@ function adexViewCallback(data) {
 	window.adexlink.target = '_blank'
 	window.adexlink.onclick = adexClickCallback.bind(null, data)
 
-	window.adeximgplaceholder.sytle = 'display: none;'
+	window.adeximgplaceholder.style = 'display: none;'
 	window.adexlink.appendChild(adexImg)
 
 	signAndSendEv({ type: 'loaded', time: Date.now() })

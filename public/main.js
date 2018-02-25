@@ -58,6 +58,7 @@ function auth() {
 	if (!time || (parseInt(time, 10) <= Date.now())) {
 		getAuthSig(setAuth)
 	} else {
+		authSig = sig
 		checkAuth()
 	}
 }

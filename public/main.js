@@ -27,7 +27,7 @@ if (localStorage.priv && localStorage.priv.length === 64) {
 
 userid = id.getChecksumAddressString()
 
-console.log('Address: ' + userid)
+// console.log('Address: ' + userid)
 
 auth()
 
@@ -79,7 +79,7 @@ function checkAuth(sig) {
 			}
 		})
 		.catch((err) => {
-			console.log('checkAuth err', err)
+			// console.log('checkAuth err', err)
 			getAuthSig(setAuth)
 		})
 }
@@ -116,13 +116,13 @@ function getAuthSig(cb) {
 			cb(null, res)
 		})
 		.catch((err) => {
-			console.log('gethAuth err', err)
+			// console.log('gethAuth err', err)
 			cb(err, null)
 		})
 }
 
-function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
-	fetch(NODE_BASE_URL + '/view?slotId=' + encodeURIComponent(slotId),
+function getAdData(slotIpfs, width, height, fallbackUrl, fallbackImgIpfs) {
+	fetch(NODE_BASE_URL + '/view?slotIpfs=' + encodeURIComponent(slotIpfs),
 		{ headers: getHeaders() })
 		.then(function (res) {
 			if (res.status >= 200 && res.status < 400) {
@@ -132,7 +132,7 @@ function getAdData(slotId, width, height, fallbackUrl, fallbackImgIpfs) {
 			}
 		})
 		.then(function (res) {
-			console.log('fetch res', res)
+			// console.log('fetch res', res)
 
 			let bidIndex = Math.floor(Math.random() * res.length) //TEMP
 			let bid = res[bidIndex].bid
@@ -162,12 +162,12 @@ function adexLoadedCallback() {
 	if (authErr) {
 		adexViewCallback({ imgSrc: getImgIpfsUrl(fallbackImgIpfs), width: query.width, height: query.height, url: getHttpUrl(fallbackUrl) })
 	} else {
-		getAdData(query.slotId, query.width, query.height, fallbackUrl, fallbackImgIpfs)
+		getAdData(query.slotIpfs, query.width, query.height, fallbackUrl, fallbackImgIpfs)
 	}
 }
 
 function adexViewCallback(data) {
-	console.log('Load adunit with data', data)
+	// console.log('Load adunit with data', data)
 
 	var adexImg = document.createElement("div")
 
@@ -199,7 +199,7 @@ function signMsg(msg) {
 	var message = util.toBuffer(msg)
 	var hash = util.hashPersonalMessage(message)
 	var sig = util.ecsign(hash, id.getPrivateKey())
-	console.log('signature', sig)
+	// console.log('signature', sig)
 	return {
 		hash: util.bufferToHex(hash),
 		sig: {
@@ -247,10 +247,10 @@ function signAndSendEv(ev) {
 			return res.text()
 		})
 		.then((res) => {
-			console.log('signAndSendEv res', res)
+			// console.log('signAndSendEv res', res)
 		})
 		.catch((err) => {
-			console.log('signAndSendEv err', err)
+			// console.log('signAndSendEv err', err)
 		})
 }
 

@@ -3,7 +3,7 @@ var Wallet = require('ethereumjs-wallet')
 var util = require('ethereumjs-util')
 var Buffer = require('buffer').Buffer
 var queryString = require('query-string')
-var NODE_BASE_URL = 'http://localhost:9710' || 'https://node.adex.network'
+var NODE_BASE_URL = 'https://node.adex.network'
 var TEMP_DEFAULT_IMG_IPFS = 'QmeQqaZC1ftKp1uWbpVRVhbCwBBrysTa3DBg9JUr6NWrQx'
 var TEMP_DEFAULT_LINK = 'https://adex.network/'
 

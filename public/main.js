@@ -167,8 +167,6 @@ function adexLoadedCallback() {
 }
 
 function adexViewCallback(data) {
-	// console.log('Load adunit with data', data)
-
 	var adexImg = document.createElement("div")
 
 	adexImg.src = data.imgSrc
@@ -199,7 +197,6 @@ function signMsg(msg) {
 	var message = util.toBuffer(msg)
 	var hash = util.hashPersonalMessage(message)
 	var sig = util.ecsign(hash, id.getPrivateKey())
-	// console.log('signature', sig)
 	return {
 		hash: util.bufferToHex(hash),
 		sig: {

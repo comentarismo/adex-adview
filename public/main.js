@@ -6,6 +6,7 @@ var queryString = require('query-string')
 var NODE_BASE_URL = 'https://node.adex.network'
 var TEMP_DEFAULT_IMG_IPFS = 'QmeQqaZC1ftKp1uWbpVRVhbCwBBrysTa3DBg9JUr6NWrQx'
 var TEMP_DEFAULT_LINK = 'https://adex.network/'
+var IPFS_GATEWAY = 'https://ipfs.adex.network/ipfs/' 
 
 // @TODO: use storage.js
 var id
@@ -277,7 +278,7 @@ function getHttpUrl(url) {
 }
 
 function getImgIpfsUrl(ipfs) {
-	return 'https://gateway.ipfs.io/ipfs/' + encodeURIComponent(ipfs)
+	return IPFS_GATEWAY + encodeURIComponent(ipfs)
 }
 
 function setImgPlaceholderSize() {
